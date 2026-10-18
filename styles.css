@@ -5,7 +5,7 @@
   --faint: rgba(17, 17, 17, 0.24);
   --line: #e6e6e4;
   --block: #f4f4f2;
-  --accent: #b33d0b;            /* burnt orange */
+  --accent: #ff6700;            /* safety orange */
   --edge: 18px;
   --bar-h: 76px;
   --row-h: 200px;               /* index thumbnail height */
@@ -218,7 +218,11 @@ main:focus, .lb:focus { outline: none; }
   display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 16px;
   padding: 0 var(--edge) calc(14px + env(safe-area-inset-bottom));
 }
+.lb-title:hover { color: var(--accent); }
+.lb-pager { display: flex; align-items: center; gap: 4px; }
 .lb-count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.lb-arrow { display: none; color: var(--muted); font-family: var(--sans); padding: 10px 8px; margin: -10px 0; }   /* phones only */
+.lb-arrow:hover { color: var(--accent); }
 .lb-close { color: var(--muted); }
 .lb-close:hover { color: var(--accent); }
 
@@ -318,6 +322,8 @@ main:focus, .lb:focus { outline: none; }
 
   .lb-stage { inset: 12px 0 var(--bar-h); }
   .lb-hit { display: none; }
+  .lb-arrow { display: inline-block; }
+  .lb-pager { margin-left: -8px; }   /* line the ← up with the column edge */
 
   /* Info header on phone: name + clocks top left (where the name always sits), Close top right */
   .info-top { grid-template-columns: 1fr auto; align-items: start; padding-top: calc(12px + env(safe-area-inset-top)); }

@@ -376,8 +376,9 @@
     if (el) { el.scrollIntoView({ block: "center" }); el.focus({ preventScroll: true }); }
   }
   lb.querySelector(".lb-close").addEventListener("click", closeLB);
-  lb.querySelector(".lb-prev").addEventListener("click", () => showLB(lbI - 1));
-  lb.querySelector(".lb-next").addEventListener("click", () => showLB(lbI + 1));
+  lb.querySelector(".lb-title").addEventListener("click", () => { lb.hidden = true; });   // href="#/" takes you to the index
+  lb.querySelectorAll(".lb-prev, .lb-back").forEach((b) => b.addEventListener("click", () => showLB(lbI - 1)));
+  lb.querySelectorAll(".lb-next, .lb-fwd").forEach((b) => b.addEventListener("click", () => showLB(lbI + 1)));
   addEventListener("keydown", (e) => {
     if (lb.hidden) return;
     if (e.key === "Escape") closeLB();
@@ -387,11 +388,11 @@
   let tx = 0, ty = 0, tt = 0;
   lb.addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; tt = Date.now(); }, { passive: true });
   lb.addEventListener("touchend", (e) => {
-    if (e.target.closest(".lb-close")) return;
+    if (e.target.closest(".lb-bar")) return;   // bar has its own links and buttons
     const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
     if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) showLB(lbI + (dx < 0 ? 1 : -1));
     else if (dy > 80) closeLB();
-    else if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && Date.now() - tt < 300) showLB(lbI + 1);
+    else if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && Date.now() - tt < 300) showLB(lbI + (tx < innerWidth / 2 ? -1 : 1));   // tap left half: back, right half: next
   });
 
   // ── Info: the page slides up and the bar becomes the header ─
