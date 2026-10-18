@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kalum Ko — photographer + director</title>
+  <meta name="description" content="Kalum Ko is a photographer and director based in Brooklyn, New York.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- The whole site lives in .shell so Info can push it up as one piece (like Stapleton) -->
+  <div class="shell" id="shell">
+    <div class="scroller" id="scroller"><main id="view" tabindex="-1"></main></div>
+    <footer class="bar" id="bar"></footer>
+    <div class="info-panel" id="info" role="dialog" aria-label="Information" aria-hidden="true"></div>
+  </div>
+
+  <!-- phones: the name stays pinned top left, outside the sliding page, so it doesn't move when Info opens -->
+  <div class="m-mark"><a class="mark-name" href="#/">kalum ko</a></div>
+
+  <!-- full-screen image viewer for stills projects -->
+  <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Image viewer" tabindex="-1">
+    <div class="lb-stage"><img class="lb-img" alt=""></div>
+    <button class="lb-hit lb-prev" type="button" aria-label="Previous image"></button>
+    <button class="lb-hit lb-next" type="button" aria-label="Next image"></button>
+    <div class="lb-bar mono">
+      <span class="lb-title"></span>
+      <span class="lb-count"></span>
+      <button class="lb-close" type="button">Close</button>
+    </div>
+  </div>
+
+  <script src="https://player.vimeo.com/api/player.js"></script>
+  <script src="data.js"></script>
+  <script src="media/manifest.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

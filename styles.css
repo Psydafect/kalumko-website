@@ -1,0 +1,326 @@
+:root {
+  --paper: #ffffff;
+  --ink: #111111;
+  --muted: rgba(17, 17, 17, 0.45);
+  --faint: rgba(17, 17, 17, 0.24);
+  --line: #e6e6e4;
+  --block: #f4f4f2;
+  --accent: #b33d0b;            /* burnt orange */
+  --edge: 18px;
+  --bar-h: 76px;
+  --row-h: 200px;               /* index thumbnail height */
+  --last-col: 44px;             /* menu's Info column; shared so page grids line up with the menu */
+  --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --ease: cubic-bezier(.7, 0, .2, 1);
+  --slide: cubic-bezier(.65, 0, .3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 13px/1.45 var(--sans); letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+img { display: block; max-width: 100%; }
+ul, dl { list-style: none; margin: 0; padding: 0; }
+.mono { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.02em; text-transform: uppercase; }
+main:focus, .lb:focus { outline: none; }
+:focus-visible { outline: 1.5px solid var(--accent); outline-offset: 3px; }
+.fade-in { animation: fadeIn .9s ease; }
+/* soft rise for photo tiles (app.js adds .up as each one scrolls into view) */
+.rise { opacity: 0; transform: translateY(10px); transition: opacity .8s ease, transform 1s cubic-bezier(.2, .7, .2, 1); transition-delay: var(--d, 0ms); }
+.rise.up { opacity: 1; transform: none; }
+#view { transition: opacity .42s ease; }
+#view.leaving { opacity: 0; }
+@keyframes fadeIn { from { opacity: 0; } }
+
+/* ── Shell: the page as one piece ──────────────────────────── */
+.shell { position: fixed; inset: 0; transition: transform 1.35s var(--slide); }
+.scroller { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-gutter: stable; }
+.scroller.snap { scroll-snap-type: y mandatory; }
+
+/* ── Bottom bar (and the Info header, which takes its place) ─ */
+.bar, .info-top {
+  display: grid; grid-template-columns: repeat(4, 1fr) var(--last-col); align-items: end; gap: 16px;
+  height: var(--bar-h); padding: 0 var(--edge) calc(14px + env(safe-area-inset-bottom));
+}
+.bar { position: absolute; z-index: 30; left: 0; right: 0; bottom: 0; background: var(--paper); transition: opacity .5s ease; }
+.bar-id { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.mark-name { color: var(--accent); font-weight: 600; font-size: 15px; letter-spacing: -0.02em; line-height: 1.1; }
+.clocks { display: flex; gap: 14px; color: var(--muted); white-space: nowrap; }
+.clock b { color: var(--ink); font-weight: 400; margin-left: 5px; font-variant-numeric: tabular-nums; }
+.clock .colon { animation: blink 2s steps(1) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.bar-link { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.bar-link > :first-child { color: var(--muted); transition: color .15s; }
+.bar-link:hover > :first-child, .bar-link[aria-current="page"] > :first-child { color: var(--ink); }
+.bar-link .n { color: var(--faint); }
+.bar-link[aria-current="page"] .n { color: var(--accent); }
+.bar-end { align-items: flex-end; text-align: right; }
+
+/* ── Landing: previews cross-fade in place as you scroll ─────
+   Desktop: anchored top-left in the same frame the work uses on project pages
+   (menu columns kalum ko→Motion), so opening a project feels like the page settling in. */
+.land-track > section { height: var(--sh, 100vh); scroll-snap-align: start; scroll-snap-stop: always; pointer-events: none; }
+/* sticky (not fixed) so wheel and touch over the image still scroll the page */
+.l-stage {
+  position: sticky; top: 0; z-index: 1; height: var(--sh, 100vh); margin-bottom: calc(-1 * var(--sh, 100vh));
+  display: grid; grid-template-columns: repeat(4, 1fr) var(--last-col); column-gap: 16px; align-items: start;
+  padding: var(--edge) var(--edge) 0;
+}
+.l-item {
+  grid-area: 1 / 1 / 2 / 4; position: relative; padding-right: 28px;
+  opacity: 0; transition: opacity .75s ease; pointer-events: none;
+}
+.l-item.on { opacity: 1; pointer-events: auto; }
+.l-media {
+  position: relative; display: block; overflow: hidden; background: var(--block);
+  width: min(100%, calc((100vh - var(--bar-h) - 2 * var(--edge) - 76px) * var(--ar)));
+  aspect-ratio: var(--ar);
+}
+.l-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s var(--ease), filter .6s ease; }
+.l-media:hover img { transform: scale(1.03); filter: brightness(.78); }
+.view {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, calc(-50% + 6px));
+  color: #fff; letter-spacing: .14em; opacity: 0; transition: opacity .35s ease, transform .5s var(--ease);
+}
+.l-media:hover .view, .l-media:focus-visible .view { opacity: 1; transform: translate(-50%, -50%); }
+.l-cap { position: absolute; left: 0; right: 0; top: 100%; display: flex; justify-content: flex-start; gap: 8px; align-items: baseline; margin-top: 12px; }
+.l-cap b { color: var(--accent); font-weight: 500; }
+.l-cap span { color: var(--muted); }
+
+/* numbers sit in the "kalum ko" column just above the menu, so they never move with the image */
+.nums {
+  position: fixed; z-index: 20; left: var(--edge); bottom: var(--bar-h);
+  display: flex; gap: 12px; padding: 0 0 12px;
+}
+.nums button { color: var(--faint); padding: 2px 0; transition: color .2s; }
+.nums button:hover, .nums button[aria-current="true"] { color: var(--ink); }
+
+/* preview bars: top right, level with the top of the media */
+.ticks {
+  position: fixed; z-index: 20; right: var(--edge); top: calc(var(--edge) - 4px);
+  display: flex; flex-direction: column; align-items: flex-end;
+}
+.ticks a { display: flex; align-items: center; gap: 12px; height: 12px; }
+.ticks i { display: block; width: var(--w, 6px); height: 1px; background: var(--faint); transition: width .5s var(--ease), background .3s; }
+.ticks a:hover i { width: calc(var(--w, 6px) + 12px); background: var(--ink); }
+.ticks a.on i { background: var(--ink); }
+.ticks span { color: var(--muted); opacity: 0; transform: translateX(4px); transition: opacity .2s, transform .2s; white-space: nowrap; }
+.ticks a:hover span { opacity: 1; transform: none; color: var(--ink); }
+
+/* ── Section index: true proportions, same row height ──────── */
+.index {
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 30px 18px;
+  padding: var(--edge) var(--edge) calc(var(--bar-h) + 60px);
+}
+.card { display: block; width: calc(var(--row-h) * var(--ar)); }
+.card-img { aspect-ratio: var(--ar); overflow: hidden; background: var(--block); }
+.card-img img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .6s ease, filter .4s ease; }
+.card-img img.in { opacity: 1; }
+.card:hover .card-img img { filter: brightness(.85); }
+.card-cap { display: flex; flex-direction: column; margin-top: 8px; line-height: 1.35; }
+.card-cap .n { color: var(--muted); }
+.card:hover .card-cap > :first-child { color: var(--accent); }
+
+/* ── Project pages: the work on the left, a wall label pinned on the right ─
+   Same 5-track grid as the bottom menu: the work sits over kalum ko→Motion, the label over Personal→Info. */
+.proj {
+  display: grid; grid-template-columns: repeat(4, 1fr) var(--last-col); gap: 0 16px; align-items: start;
+  /* bottom padding = menu + edge exactly, so the pinned info column never gets pushed up at the end of the page */
+  padding: var(--edge) var(--edge) calc(var(--bar-h) + var(--edge));
+}
+/* full-height column so previous / next can sit at its foot */
+.p-side {
+  grid-column: 4 / 6; grid-row: 1; position: sticky; top: var(--edge);
+  min-height: calc(100vh - var(--bar-h) - 2 * var(--edge)); display: flex; flex-direction: column;
+}
+.p-main { grid-column: 1 / 4; grid-row: 1; padding-right: 28px; }   /* the gap lives on the work side, so the info column starts exactly under "Personal" */
+.lbl { display: block; color: var(--muted); margin-bottom: 6px; }
+.p-title { margin: 0; color: var(--accent); font-weight: 500; font-size: 26px; line-height: 1; letter-spacing: -0.035em; }
+.p-sub { margin: 7px 0 0; font-size: 14px; letter-spacing: -0.01em; }
+.p-kind { display: block; margin-top: 10px; color: var(--muted); }
+.p-text { margin-top: 20px; }
+.p-text p { margin: 0 0 .65em; font-size: 14px; line-height: 1.42; letter-spacing: -0.01em; }
+.p-text p:last-child { margin-bottom: 0; }
+.p-text .note { color: var(--muted); }
+.p-more { margin-top: 22px; }
+.p-block { margin-bottom: 16px; }
+.p-block:last-of-type { margin-bottom: 0; }
+/* one credit per line: role in grey — name in black */
+.p-lines li { padding: 1.5px 0; }
+.p-lines .r { color: var(--muted); }
+.p-lines a:hover, .info-col a:hover { color: var(--accent); }
+.p-side .p-nav-top { display: none; }
+.p-more .back { display: none; }
+.p-nav-foot { margin-top: auto; padding-top: 18px; display: flex; justify-content: space-between; gap: 12px; }
+.p-nav-foot a { color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity .15s; }
+.p-nav-foot a:hover { opacity: .55; }
+.p-nav { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 30px; }
+.p-nav a { display: flex; flex-direction: column; min-width: 0; }
+.p-nav a:last-child { align-items: flex-end; text-align: right; }
+.p-nav .lbl { margin-bottom: 3px; }
+.p-nav .t { color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity .15s; }
+.p-nav a:hover .t { opacity: .55; }
+.back { display: inline-block; color: var(--muted); }
+.back:hover { color: var(--accent); }
+
+.p-grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 30px 18px; --row-h: 260px; }
+.p-grid button { display: block; width: calc(var(--row-h) * var(--ar)); cursor: zoom-in; }
+.p-grid .card-img img { transition: opacity .6s ease, filter .4s ease; }
+.p-grid button:hover img { filter: brightness(.85); }
+.p-grid .card-cap { color: var(--faint); }
+
+/* film + player (after dylanmaranda.com) */
+/* film: left-aligned, vertically centred in the space above the menu */
+.film-wrap { display: flex; align-items: flex-start; }
+.proj-film { padding-bottom: var(--bar-h); }
+/* --fit is the height left under the header (set in app.js), so the whole film shows without scrolling */
+.film { width: min(100%, calc(var(--fit, 60vh) * (var(--far, 16 / 9)))); }
+.f-frame { position: relative; aspect-ratio: var(--far, 16 / 9); background: #0d0d0d; overflow: hidden; }
+.f-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.f-poster { position: absolute; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.f-poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter .5s, transform 1.4s var(--ease); }
+.f-poster:hover img { filter: brightness(.75); transform: scale(1.02); }
+.f-poster span { position: relative; color: #fff; letter-spacing: .14em; }
+.f-line { position: relative; height: 9px; margin-top: 2px; cursor: pointer; }
+.f-line::before { content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: var(--line); }
+.f-line i { position: absolute; left: 0; top: 4px; height: 1px; width: var(--p, 0%); background: var(--ink); }
+.f-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 4px; }
+.f-row b { font-weight: 500; }
+.f-row .sub { color: var(--muted); }
+.f-ctl { display: flex; gap: 14px; white-space: nowrap; }
+.f-ctl .time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.f-ctl button:hover { color: var(--accent); }
+.film:fullscreen { width: 100%; height: 100%; background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 0 3vw 2vh; }
+.film:fullscreen .f-frame { flex: 1; aspect-ratio: auto; background: #000; }
+.film:fullscreen .f-line::before { background: rgba(255, 255, 255, .25); }
+.film:fullscreen .f-line i { background: #fff; }
+.film:fullscreen .sub, .film:fullscreen .time { color: rgba(255, 255, 255, .55); }
+
+/* ── Lightbox ──────────────────────────────────────────────── */
+.lb { position: fixed; inset: 0; z-index: 80; background: var(--paper); animation: fadeIn .3s ease; }
+.lb[hidden] { display: none; }
+.lb-stage { position: absolute; inset: var(--edge) var(--edge) var(--bar-h); display: flex; align-items: center; justify-content: center; }
+.lb-img { max-width: 100%; max-height: 100%; width: auto; height: auto; transition: opacity .25s ease; user-select: none; -webkit-user-drag: none; }
+.lb-img.out { opacity: 0; }
+.lb-hit { position: absolute; top: 0; bottom: var(--bar-h); width: 50%; }
+.lb-prev { left: 0; cursor: w-resize; }
+.lb-next { right: 0; cursor: e-resize; }
+.lb-bar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--bar-h);
+  display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 16px;
+  padding: 0 var(--edge) calc(14px + env(safe-area-inset-bottom));
+}
+.lb-count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.lb-close { color: var(--muted); }
+.lb-close:hover { color: var(--accent); }
+
+/* ── Info: the whole page slides up, the bar becomes the header ─ */
+.m-mark { display: none; }
+.info-panel {
+  position: absolute; z-index: 50; left: 0; right: 0; top: calc(100% - var(--bar-h)); height: 100%;
+  display: flex; flex-direction: column; pointer-events: none;
+}
+.info-top { flex: none; align-items: end; opacity: 0; transition: opacity .5s ease; background: var(--paper); }
+.info-body { flex: 1; overflow-y: auto; background: var(--paper); overscroll-behavior: contain; display: flex; flex-direction: column; }
+.info-cols { flex: 1 0 auto; }
+.info-foot {
+  display: flex; justify-content: space-between; gap: 16px; color: var(--muted);
+  padding: 16px var(--edge) calc(16px + env(safe-area-inset-bottom));
+}
+.shell.info-open { transform: translate3d(0, calc(-100% + var(--bar-h)), 0); }
+.shell.moving { will-change: transform; }
+.shell.moving .info-panel { will-change: opacity; }
+.shell.info-open .bar { opacity: 0; pointer-events: none; }
+.shell.info-open .info-panel { pointer-events: auto; }
+.shell.info-open .nums, .shell.info-open .ticks { visibility: hidden; }
+.shell.info-open .info-top { opacity: 1; transition-delay: .35s; }
+.info-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px 16px; padding: 40px var(--edge) 80px; }
+.portrait { width: min(100%, 300px); aspect-ratio: 1; object-fit: cover; margin-bottom: 26px; background: var(--block); }
+.bio { padding-right: 24px; }
+.bio p { margin: 0 0 1em; font-size: 14px; line-height: 1.45; letter-spacing: -0.01em; }
+.bio b { font-weight: 500; }
+.h { margin: 0 0 6px; font-weight: 400; color: var(--ink); }
+.info-col ul { padding-left: 26px; margin-bottom: 30px; color: var(--muted); }
+.info-col li { padding: 1px 0; }
+.info-col a:hover { color: var(--accent); }
+.rep { display: grid; grid-template-columns: 72px 1fr; gap: 2px 12px; padding-left: 26px; margin-bottom: 30px; }
+.rep dt { color: var(--muted); }
+.rep dd { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+@media (max-width: 1000px) {
+  .info-cols { grid-template-columns: 1fr 1fr; }
+  .clocks { flex-wrap: wrap; row-gap: 1px; }
+  .clock { white-space: nowrap; }
+  .proj { display: flex; flex-direction: column; padding-bottom: calc(var(--bar-h) + 90px); }
+  /* title + about, then the work, then credits */
+  .p-side { display: contents; min-height: 0; }
+  .p-top { order: 0; width: 100%; margin-bottom: 30px; }
+  .p-main { order: 1; width: 100%; padding-right: 0; }
+  .p-more { order: 2; width: 100%; margin-top: 56px; padding-top: 0; }
+  .p-side .p-nav-top { display: flex; }
+  .p-more .back { display: inline-block; }
+  .p-nav-foot { display: none; }
+  .film-wrap { min-height: 0; }
+  .film { width: 100%; }
+}
+
+/* ── Phone ─────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  :root { --edge: 16px; --bar-h: 62px; --row-h: 124px; }
+
+  /* Info on phones: same whole-page slide as desktop, a little quicker */
+  .shell { transition-duration: 1.05s; }
+  body { font-size: 13.5px; }
+  .bar, .info-top { gap: 8px; }
+  .bar .clocks, .bar-link .n { display: none; }
+  .bar { grid-template-columns: repeat(3, 1fr) auto; }
+  .bar .bar-id { display: none; }
+  /* the pinned name lives outside .shell so the Info slide doesn't carry it */
+  .m-mark {
+    display: block; position: fixed; left: 0; right: 0; top: 0; z-index: 70; pointer-events: none;
+    padding: calc(12px + env(safe-area-inset-top)) var(--edge) 10px; background: var(--paper);
+    transition: background-color .15s ease 1.05s;                /* closing: the strip comes back only once the slide (1.05s) has finished */
+  }
+  .m-mark a { pointer-events: auto; }
+  .shell.info-open ~ .m-mark { background: transparent; transition: background-color .4s ease; }   /* opening: clear right away so Info's header (and Close) show through */
+  .info-top .mark-name { visibility: hidden; }                    /* the pinned one sits exactly here */
+  .mark-name { font-size: 15px; }
+
+  .l-stage { grid-template-columns: 1fr; place-items: center; padding: 44px 0 var(--bar-h); }
+  .l-item { grid-area: 1 / 1; padding-right: 0; }
+  .l-cap { justify-content: center; }
+  .l-media { width: min(calc(100vw - 32px), calc((100vh - var(--bar-h) - 140px) * var(--ar))); }
+  .l-media:hover img { transform: none; filter: none; }
+  .l-media:hover .view { opacity: 0; }
+  .nums, .ticks { display: none; }
+
+  .index { gap: 22px 12px; padding-top: 52px; }
+  .proj { padding-top: 52px; }
+
+  /* film fills the page width on phones, with the same 16px margin as the project navigation */
+  .film { width: 100%; flex-shrink: 0; }
+  .p-title { font-size: 26px; }
+  .p-grid { --row-h: 150px; gap: 16px 10px; }
+  .p-grid .card-cap { display: none; }
+  .f-row { flex-direction: column; gap: 6px; }
+
+  .lb-stage { inset: 12px 0 var(--bar-h); }
+  .lb-hit { display: none; }
+
+  /* Info header on phone: name + clocks top left (where the name always sits), Close top right */
+  .info-top { grid-template-columns: 1fr auto; align-items: start; padding-top: calc(12px + env(safe-area-inset-top)); }
+  .info-top .spacer { display: none; }
+  .info-cols { grid-template-columns: 1fr; gap: 8px; padding-top: 24px; }
+  .portrait { width: 100%; }
+}
