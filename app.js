@@ -364,7 +364,8 @@
   }
   function openLB(p, i) {
     lbP = p;
-    lb.querySelector(".lb-title").textContent = p.title;
+    const title = lb.querySelector(".lb-title");
+    title.textContent = p.title; title.href = `#/p/${p.slug}`;
     lbStage.replaceChildren();
     lb.hidden = false;
     showLB(i);
@@ -376,7 +377,12 @@
     if (el) { el.scrollIntoView({ block: "center" }); el.focus({ preventScroll: true }); }
   }
   lb.querySelector(".lb-close").addEventListener("click", closeLB);
-  lb.querySelector(".lb-title").addEventListener("click", () => { lb.hidden = true; });   // href="#/" takes you to the index
+  // title: close the viewer and land at the top of this project's page (the lightbox only opens from there)
+  lb.querySelector(".lb-title").addEventListener("click", (e) => {
+    e.preventDefault();
+    lb.hidden = true;
+    scroller.scrollTo({ top: 0, behavior: "instant" });
+  });
   lb.querySelectorAll(".lb-prev, .lb-back").forEach((b) => b.addEventListener("click", () => showLB(lbI - 1)));
   lb.querySelectorAll(".lb-next, .lb-fwd").forEach((b) => b.addEventListener("click", () => showLB(lbI + 1)));
   addEventListener("keydown", (e) => {
