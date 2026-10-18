@@ -339,27 +339,33 @@
 
   // ── Lightbox for stills ─────────────────────────────────
   const lb = document.getElementById("lb");
-  const lbImg = lb.querySelector(".lb-img");
+  const lbStage = lb.querySelector(".lb-stage");
   let lbP = null, lbI = 0, lbToken = 0;
   function showLB(n) {
     const imgs = lbP.images;
     lbI = (n + imgs.length) % imgs.length;
     const im = imgs[lbI], my = ++lbToken;
     lb.querySelector(".lb-count").textContent = `${pad(lbI + 1)} / ${pad(imgs.length)}`;
-    lbImg.classList.add("out");
-    const pre = new Image();
-    pre.src = im.src;
-    Promise.all([pre.decode().catch(() => {}), new Promise((r) => setTimeout(r, lbImg.getAttribute("src") ? 180 : 0))]).then(() => {
+    const cur = lbStage.querySelector(".lb-img");
+    if (cur) cur.classList.add("out");
+    // each photo gets a fresh <img>, fully loaded off-stage, then swapped in alone
+    // (iOS Safari keeps painting the old picture if you just change src on one element)
+    const next = new Image();
+    next.className = "lb-img out"; next.alt = `${lbP.title} ${lbI + 1}`; next.draggable = false;
+    const loaded = new Promise((r) => { next.onload = next.onerror = r; next.src = im.src; if (next.complete) r(); })
+      .then(() => next.decode && next.decode().catch(() => {}));
+    Promise.all([loaded, new Promise((r) => setTimeout(r, cur ? 250 : 0))]).then(() => {
       if (my !== lbToken) return;
-      lbImg.src = im.src; lbImg.alt = `${lbP.title} ${lbI + 1}`;
-      lbImg.classList.remove("out");
+      lbStage.replaceChildren(next);   // only ever one photo on stage
+      void next.offsetWidth;           // commit opacity 0 so the fade-in runs
+      next.classList.remove("out");
     });
     [1, -1].forEach((d) => { new Image().src = imgs[(lbI + d + imgs.length) % imgs.length].src; });
   }
   function openLB(p, i) {
     lbP = p;
     lb.querySelector(".lb-title").textContent = p.title;
-    lbImg.removeAttribute("src");
+    lbStage.replaceChildren();
     lb.hidden = false;
     showLB(i);
     lb.focus();
