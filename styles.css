@@ -8,7 +8,7 @@
   --accent: #ff6700;            /* safety orange */
   --edge: 18px;
   --bar-h: 76px;
-  --row-h: 200px;               /* index thumbnail height */
+  --row-h: 240px;               /* index thumbnail height */
   --last-col: 44px;             /* menu's Info column; shared so page grids line up with the menu */
   --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -171,7 +171,8 @@ main:focus, .lb:focus { outline: none; }
 .back { display: inline-block; color: var(--muted); }
 .back:hover { color: var(--accent); }
 
-.p-grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 30px 18px; --row-h: 260px; }
+.p-grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 30px 18px; --row-h: 312px; }
+@media (min-width: 721px) { .proj[data-slug="close-to-home"] .p-grid { --row-h: 364px; } }   /* desktop: Close to Home runs larger */
 .p-grid button { display: block; width: calc(var(--row-h) * var(--ar)); cursor: zoom-in; }
 .p-grid .card-img img { transition: opacity .6s ease, filter .4s ease; }
 .p-grid button:hover img { filter: brightness(.85); }
@@ -282,7 +283,7 @@ main:focus, .lb:focus { outline: none; }
 
 /* ── Phone ─────────────────────────────────────────────────── */
 @media (max-width: 720px) {
-  :root { --edge: 16px; --bar-h: 62px; --row-h: 124px; }
+  :root { --edge: 16px; --bar-h: 62px; --row-h: 149px; }
 
   /* Info on phones: same whole-page slide as desktop, a little quicker */
   .shell { transition-duration: 1.05s; }
@@ -316,7 +317,7 @@ main:focus, .lb:focus { outline: none; }
   /* film fills the page width on phones, with the same 16px margin as the project navigation */
   .film { width: 100%; flex-shrink: 0; }
   .p-title { font-size: 26px; }
-  .p-grid { --row-h: 150px; gap: 16px 10px; }
+  .p-grid { --row-h: 195px; gap: 16px 10px; }
   .p-grid .card-cap { display: none; }
   .f-row { flex-direction: column; gap: 6px; }
 

@@ -236,7 +236,7 @@
   }
 
   function renderStills(p, back) {
-    view.innerHTML = `<article class="proj fade-in">
+    view.innerHTML = `<article class="proj fade-in" data-slug="${p.slug}">
       ${side(p, back)}
       <div class="p-main p-grid">${p.images.map((im, i) => `
         <button type="button" data-i="${i}" style="--ar:${ratio(im)}" aria-label="Open image ${i + 1}">
